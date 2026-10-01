@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: nekiro/ssh-job@main
+        with:
+          host: ${{ secrets.HOST }}
+          password: ${{ secrets.KEY }}
+          user: ${{ secrets.USER }}
+          command: |
+            set -e
+            cd assistant_project/strava_bot
+            git pull
+            docker network inspect webnet >/dev/null 2>&1 || docker network create webnet
+            docker-compose up -d --build
