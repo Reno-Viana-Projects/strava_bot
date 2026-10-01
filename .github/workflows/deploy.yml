@@ -21,4 +21,5 @@ jobs:
             cd assistant_project/strava_bot
             git pull
             docker network inspect webnet >/dev/null 2>&1 || docker network create webnet
+            docker-compose down
             docker-compose up -d --build
