@@ -14,7 +14,7 @@ jobs:
         uses: nekiro/ssh-job@main
         with:
           host: ${{ secrets.HOST }}
-          password: ${{ secrets.KEY }}
+          key: ${{ secrets.KEY }}
           user: ${{ secrets.USER }}
           command: |
             set -e
