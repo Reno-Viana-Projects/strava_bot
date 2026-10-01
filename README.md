@@ -65,3 +65,12 @@ shared/             # Utilitários compartilhados no projeto
 ```
 
 > Para detalhes sobre os padrões de desenvolvimento, veja `CLAUDE.md`.
+
+---
+
+## Deploy
+
+Serviço `strava_bot` do `docker-compose.yml` deste repo (imagem `strava-bot` sobre a `assistant-base-python`, rede
+externa `webnet`, `.env` único em `../.env`). Push na `main` faz o deploy (`.github/workflows/deploy.yml`: SSH,
+`git pull`, `docker-compose down`, `up -d --build` em `assistant_project/strava_bot`). Dependência nova no
+`requirements.txt` só entra depois do *Update Base Image* do `assistant_bot`.
