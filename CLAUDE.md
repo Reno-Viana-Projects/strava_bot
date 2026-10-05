@@ -134,8 +134,8 @@ A sincronização deve ser idempotente. Nunca duplique atividades no banco de da
 
 - `docker-compose.yml` deste repo: serviço `strava_bot` (`python3 -u bot.py`), imagem `strava-bot` sobre a
   `assistant-base-python` (o `Dockerfile` só faz `COPY`), rede externa `webnet`, `.env` único em `../.env`.
-- **Push na `main` já faz o deploy** (`.github/workflows/deploy.yml`: SSH, `git pull`, `docker-compose down` e
-  `up -d --build` em `assistant_project/strava_bot`). Push só quando o usuário pedir.
+- **Push na `main` já faz o deploy** (`.github/workflows/deploy.yml`: SSH, `git pull`, checagem de espaço, `docker-compose build` e
+  `up -d`, sem `down` em `assistant_project/strava_bot`). Push só quando o usuário pedir.
 - O sync do Strava é o caminho único do `assistant_util` (`StravaClient` + `sync_group`), compartilhado com o
   `strava_schedule`. Mudança lá ou no `assistant_model` só chega aqui depois do *Update Base Image* do
   `assistant_bot` e de um novo deploy deste repo.

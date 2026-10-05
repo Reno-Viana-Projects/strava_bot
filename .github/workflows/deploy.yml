@@ -21,5 +21,12 @@ jobs:
             cd assistant_project/strava_bot
             git pull
             docker network inspect webnet >/dev/null 2>&1 || docker network create webnet
-            docker-compose down
-            docker-compose up -d --build
+            # Deploy que não derruba (plano 2026-10-05, igual ao assistant_bot/scripts/deploy_compose.sh): só começa com
+            # espaço no disco do Docker, constrói antes e só depois troca os containers com `up -d`, sem `down`. Build
+            # que falha deixa os containers antigos no ar.
+            LIVRE=$(df --output=avail -BG "$(docker info -f '{{.DockerRootDir}}' 2>/dev/null || echo /var/lib/docker)" | tail -1 | tr -dc '0-9')
+            if [ "${LIVRE:-0}" -lt 5 ]; then echo "ERRO: só ${LIVRE:-0} GB livres no disco do Docker (mínimo 5 GB); nada foi parado"; exit 1; fi
+            docker-compose build
+            docker-compose up -d --remove-orphans
+            docker image prune -f >/dev/null 2>&1 || true
+            docker builder prune -f --keep-storage 10GB >/dev/null 2>&1 || true
