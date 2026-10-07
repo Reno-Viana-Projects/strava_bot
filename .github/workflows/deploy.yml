@@ -9,6 +9,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # deploy travado falha sozinho (07/10/2026 um build ficou 1h43 parado); o script também limita cada passo
+    timeout-minutes: 40
     steps:
       - name: Deploy via SSH
         uses: nekiro/ssh-job@main

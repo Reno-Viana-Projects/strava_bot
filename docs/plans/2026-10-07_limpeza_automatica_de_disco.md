@@ -52,3 +52,20 @@ ocupa alguns GB, a antiga continua presa às imagens dos serviços até eles ser
 - [x] `deploy.yml` e CLAUDE.md nos 9 repos
 - [x] Plano em `docs/plans/2026-10-07_limpeza_automatica_de_disco.md` nos 10 repos
 - [ ] Push e *Update Base Image* com redeploy
+
+
+## Adendo (aprovado em 2026-10-07): um deploy por vez, sinal de vida e limite de tempo
+
+O primeiro uso, com os 10 deploys disparados juntos, mostrou dois problemas:
+- **`assistant_bot`:** o build ficou 1h43 parado em "exporting layers", enquanto os outros deploys apagavam o cache
+  de build.
+- **`assistant_schedule`:** a conexão SSH caiu (`ECONNRESET`) depois de minutos sem nenhuma saída no log.
+
+Correção:
+1. **Trava (`flock` em `/tmp/deploy_compose.lock`):** um deploy por vez no servidor. Quem chega espera até 30 min,
+   escrevendo no log, e depois desiste sem mexer em nada.
+2. **`com_sinal`:** a limpeza do cache, o build e o `up` rodam com `timeout` (10, 25 e 10 min) e escrevem
+   "... ainda rodando" a cada 30 s. Estourou o tempo, o deploy falha sem trocar os containers.
+3. **Limite do job:** `timeout-minutes: 40` no `deploy.yml` dos 10 repos. O *Update Base Image* fica com 150 e
+   `command_timeout` de 140 min, porque faz o redeploy dos 10 repos em série.
+4. **Testes:** a trava ocupada (espera e desistência), o sinal de vida e o build que passa do limite.
