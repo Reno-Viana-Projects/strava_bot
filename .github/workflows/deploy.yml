@@ -21,16 +21,8 @@ jobs:
             cd assistant_project/strava_bot
             git pull
             docker network inspect webnet >/dev/null 2>&1 || docker network create webnet
-            # Deploy que não derruba (plano 2026-10-05, igual ao assistant_bot/scripts/deploy_compose.sh): só começa com
-            # espaço no disco do Docker, constrói antes e só depois troca os containers com `up -d`, sem `down`. Build
-            # que falha deixa os containers antigos no ar.
-            # Antes de medir, limpa só o lixo (imagens sem nome e cache de build acima de 10 GB): sem isso, com o disco
-            # perto do limite, o deploy desistia sem nunca liberar espaço (06/10/2026). Nunca a limpeza com -a.
-            docker image prune -f >/dev/null 2>&1 || true
-            docker builder prune -f --keep-storage 10GB >/dev/null 2>&1 || true
-            LIVRE=$(df --output=avail -BG "$(docker info -f '{{.DockerRootDir}}' 2>/dev/null || echo /var/lib/docker)" | tail -1 | tr -dc '0-9')
-            if [ "${LIVRE:-0}" -lt 5 ]; then echo "ERRO: só ${LIVRE:-0} GB livres no disco do Docker (mínimo 5 GB); nada foi parado"; exit 1; fi
-            docker-compose build
-            docker-compose up -d --remove-orphans
-            docker image prune -f >/dev/null 2>&1 || true
-            docker builder prune -f --keep-storage 10GB >/dev/null 2>&1 || true
+            # Espaço, build e só depois `up -d`, sem `down` (build que falha deixa os containers no ar), pelo script único
+            # do assistant_bot (scripts/deploy_compose.sh, plano 2026-10-07): sem espaço, faz a limpeza profunda antes de
+            # desistir (cache de build, containers parados e imagens sem uso; nunca a base nem volumes).
+            git -C ../assistant_bot pull -q || true
+            bash ../assistant_bot/scripts/deploy_compose.sh .
